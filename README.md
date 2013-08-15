@@ -1,4 +1,4 @@
-jest
+Jest Framework
 ====
 
-experimental micro framework
+Experimental Micro Framework

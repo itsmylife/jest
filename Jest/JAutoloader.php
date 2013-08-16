@@ -24,7 +24,8 @@ class JAutoloader {
 	{
 		if (is_dir($dir)) {
 			spl_autoload_register(function($classname) use($dir) {
-				include_once($dir.'/'.$classname.'.php');
+				$file = $dir.'/'.$classname.'.php';
+				if (is_file($file)) include_once($file);
 			});
 			$this->registerSubDirs($dir);
 		} else {

@@ -6,10 +6,10 @@
 class JRouter {
 	private static $instance = null;
 	public $url;
-	public $uri;
+	public $host;
 	function __construct() {
 		$this->uri = $_SERVER['REQUEST_URI'];
-		print_r($_SERVER);
+		$this->host = $_SERVER['SERVER_NAME'];
 	}
 
 	public static function getInstance() {

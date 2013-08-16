@@ -1,18 +1,18 @@
 <?php
 /**
- * Created by JetBrains PhpStorm.
- * User: cm
- * Date: 16.08.2013
- * Time: 21:13
- * To change this template use File | Settings | File Templates.
+ * This class autoloads everything from importPaths defined in config
+ * ['importPaths'=>['/modules','/components']] //looks like this
+ * Class JAutoloader
  */
-
 class JAutoloader {
 	private static $instance = null;
 	public function __construct()
 	{
+		//autoload Jest Dir
+		$this->registerDir(J::getJestDir());
+		//autoload dirs in config
 		$dirs = J::$options['importPaths'];
-		foreach ($dirs as $dir) $this->registerDir(J::getRootDir().'/'.$dir);
+		foreach ($dirs as $dir) $this->registerDir(J::getAppDir().$dir);
 	}
 	
 	public static function getInstance() {

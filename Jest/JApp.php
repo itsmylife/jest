@@ -1,12 +1,10 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: cm
- * Date: 16.08.2013
- * Time: 20:31
- * To change this template use File | Settings | File Templates.
- */
 
+/**
+ * This is our application class
+ * It's responsible for the application's actions
+ * Class JApp
+ */
 class JApp {
 	private static $instance = null;
 	function __construct() {
@@ -17,7 +15,10 @@ class JApp {
 		if (self::$instance == null) self::$instance = new self();
 		return self::$instance;
 	}
-	
+
+	/**
+	 * This will init the Application
+	 */
 	public function init() {
 		echo J::router()->uri;
 	}

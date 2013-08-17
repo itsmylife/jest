@@ -8,6 +8,9 @@ require_once(__DIR__.'/JAutoloader.php');
 class J {
 	/** @var array self::$options All configuration options of Jest */
 	public static $options = [];
+	
+	/** @var string self::$appDir Initial value of Application Directory*/
+	private static $appDir;
 
 	/**
 	 * This will init some required startup components
@@ -15,29 +18,37 @@ class J {
 	 */
 	public static function init($appDir)
 	{
-		self::configure($appDir);		
+		self::$appDir = $appDir;
+		self::configure();		
 		self::autoloader();
 		self::app()->init();
 	}
 
 	/**
-	 * We are merging some initial options with App/Config directory options
-	 * Config directory will be scanned for options and after that App/Config/[Env] directory will be scanned
-	 * All the results will be merged into J::$options 
-	 * @param string $appDir Application Directory
+	 * @return array Initial Options of Jest
 	 */
-	private static function configure($appDir)
-	{
-		self::$options = [
+	public static function getInitialOptions() {
+		return [
 			'dirs'=>[
-				'app'=>realpath($appDir),
-				'web'=>realpath($appDir.'/Web'),
+				'app'=>realpath(self::$appDir),
+				'web'=>realpath(self::$appDir.'/Web'),
 				'jest'=>__DIR__
 			],
 			'importPaths'=>[
-				'/Modules'
-			]
+				'{J}/','/Modules/**'
+			],
+			'mainModule'=>'Main'
 		];
+	}
+	
+	/**
+	 * We are merging some initial options with App/Config directory options
+	 * Config directory will be scanned for options and after that App/Config/[Env] directory will be scanned
+	 * All the results will be merged into J::$options 
+	 */
+	private static function configure()
+	{
+		self::$options = self::getInitialOptions();
 		$confDir = self::getAppDir().'/Conf';
 		$confFiles = glob($confDir.'/*.php');
 		$envDir = $confDir.'/'.Env;
@@ -47,7 +58,7 @@ class J {
 		foreach ($confFiles as $confFile)
 		{
 			$options = include($confFile);
-			self::$options = array_merge($options,self::$options);
+			self::$options = array_merge(self::$options,$options);
 		}
 	}
 

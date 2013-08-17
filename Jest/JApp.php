@@ -20,6 +20,6 @@ class JApp {
 	 * This will init the Application
 	 */
 	public function init() {
-		echo J::router()->uri;
+		J::router()->route();
 	}
 }

@@ -6,13 +6,10 @@
  */
 class JAutoloader {
 	private static $instance = null;
-	public function __construct()
-	{
-		//autoload Jest Dir
-		$this->registerDir(J::getJestDir());
-		//autoload dirs in config
-		$dirs = J::$options['importPaths'];
-		foreach ($dirs as $dir) $this->registerDir(J::getAppDir().$dir);
+	private $dirs;
+	public function __construct()	{
+		$this->analyzePaths();
+		$this->registerAutoloader();
 	}
 	
 	public static function getInstance() {
@@ -20,22 +17,45 @@ class JAutoloader {
 		return self::$instance;
 	}
 	
-	public function registerDir($dir)
-	{
-		if (is_dir($dir)) {
-			spl_autoload_register(function($classname) use($dir) {
+	public function registerAutoloader() {
+		spl_autoload_register(function($classname) {
+			foreach ($this->dirs as $dir)	{
 				$file = $dir.'/'.$classname.'.php';
-				if (is_file($file)) include_once($file);
-			});
-			$this->registerSubDirs($dir);
-		} else {
-			throw new Exception('This is not a valid directory for import : '.$dir);
+				if (is_file($file)) {
+					include_once($file); break;
+				}
+			}				
+		});
+	}
+	
+	public function addSubDirs($path,$depth) {
+		$subDirs = glob($path.'/*', GLOB_ONLYDIR|GLOB_NOSORT);
+		$depth--;
+		foreach ($subDirs as $subDir) {
+			$this->dirs[] = $subDir;
+			if ($depth != 0) $this->addSubDirs($subDir, $depth);
+		}		
+	}
+	
+	public function analyzePaths() {
+		foreach (J::$options['importPaths'] as $path) {
+			$path = preg_replace('/^\{J\}\//',J::getJestDir().'/',$path);
+			$path = preg_replace('/^\//',J::getAppDir().'/',$path);
+			$depth = 0;
+			do {
+				$path = preg_replace('/\/\*$/','',$path,-1,$subDir); 
+				if ($subDir) $depth++;
+			} while ($subDir);
+			$path = preg_replace('/\/\*\*$/','',$path,-1,$recursive);
+			if (is_dir($path)) {
+				$this->dirs[] = $path;
+				if ($recursive) $depth = -1;
+				if ($depth != 0) $this->addSubDirs($path, $depth);
+			} else {
+				throw new JException('Cannot find the path for autoloading:'.$path);
+			}						
 		}
 	}
 	
-	public function registerSubDirs($dir)
-	{
-		$subdirs = glob($dir.'/*',GLOB_ONLYDIR|GLOB_NOSORT);
-		foreach ($subdirs as $subdir) $this->registerDir($subdir);
-	}
+	
 }

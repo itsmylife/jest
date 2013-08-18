@@ -99,4 +99,12 @@ class J {
 	public static function app() {
 		return JApp::getInstance();
 	}
+
+	/**
+	 * This returns singleton Purifier component of J
+	 * @return JPurifier
+	 */
+	public static function purifier() {
+		return JPurifier::getInstance();
+	}
 }

@@ -1,11 +1,12 @@
 <?php
 
 namespace J;
+use J;
 
 /**
  * This is our application class
  * It's responsible for the application's actions
- * Class JApp
+ * Class App
  */
 class App {
 	private static $instance = null;

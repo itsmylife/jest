@@ -7,4 +7,8 @@ class MainController {
 	{
 		echo 'Merhaba '.$isim;
 	}
+	public function merhabaDeAction($isim1,$isim2)
+	{
+		echo 'Merhaba'. $isim1.' '.$isim2;
+	}
 }

@@ -1,6 +1,9 @@
 <?php
 
-namespace J;
+use J\App;
+use J\Router;
+use J\Autoloader;
+use J\Purifier;
 
 require_once(__DIR__.'/Autoloader.php');
 /**

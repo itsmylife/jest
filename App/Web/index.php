@@ -1,4 +1,5 @@
 <?php
+
 //We defined application and jest directories
 $appDir  = __DIR__.'/../../App';
 $jestDir = __DIR__.'/../../Jest';

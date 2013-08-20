@@ -1,6 +1,7 @@
 <?php
 
 namespace J;
+use J;
 
 /**
  * This class is resolving friendly url's to application actions
@@ -29,9 +30,10 @@ class Router
 	 * @param string $controllerName of which we need action names
 	 * @return array given controller's actions
 	 */
-	private function getControllersActions($controllerName) {
+	private function getControllersActions($controllerName,$moduleName='Main') {
 		$controllerName = Helper::camelize($controllerName,true);
-		$controller = new \ReflectionClass($controllerName . 'Controller');
+		$moduleName = Helper::camelize($moduleName,true);
+		$controller = new \ReflectionClass($moduleName.'\\'.$controllerName . 'Controller');
 		$methods = $controller->getMethods();
 		$actions = [];
 		foreach ($methods as $method) {
@@ -75,13 +77,15 @@ class Router
 		return $controllers;
 	}
 	
-	private function isInActions($action, $controller) {
+	private function isInActions($action, $controller, $module=null) {
+		if ($module == null) $module = J::$options['mainModule'];
 		$action = Helper::camelize($action);
-		return in_array($action, $this->getControllersActions($controller));
+		return in_array($action, $this->getControllersActions($controller, $module));
 	}
 	
 	private function isInControllers($controller, $module) {
 		$controller =  Helper::camelize($controller,true);
+		$module =  Helper::camelize($module,true);
 		return in_array($controller, $this->getModulesControllers($module));
 	}
 	
@@ -95,14 +99,16 @@ class Router
 	 */
 	public function route()	{
 		$route = explode('/', $this->uri);
+		if (!isset($route[1])) $route[1]='';
+		if (!isset($route[2])) $route[2]='';
 		//is first part of route in main controllers actions
-		if ($this->isInActions($route[0],J::$options['mainModule'])) {
+		if ($this->isInActions($route[0],J::$options['mainModule'],J::$options['mainModule'])) {
 			$this->routeToAction($route[0], $this->buildParameters($route, 1));
 		} elseif (
 			//is first part one of the main module's controllers 
 			$this->isInControllers($route[0],J::$options['mainModule']) &&
 			//is second part of route in this controllers actions
-			$this->isInActions($route[1],$route[0])
+			$this->isInActions($route[1],$route[0],J::$options['mainModule'])
 		) {
 			$this->routeToAction($route[1], $this->buildParameters($route, 2), $route[0]);
 		} elseif (
@@ -111,21 +117,31 @@ class Router
 			//is second part is controller of that module
 			$this->isInControllers($route[1],$route[0]) &&
 			//is third part is action of that controller
-			$this->isInActions($route[2],$route[1])
+			$this->isInActions($route[2],$route[1],$route[0])
 		) {
-			$this->routeToAction($route[2], $this->buildParameters($route, 3), $route[1]);
-		} elseif ($this->isModule($route[0])) {
-			$this->routeToAction('index', $this->buildParameters($route, 1), $route[0]);
+			$this->routeToAction($route[2], $this->buildParameters($route, 3), $route[1], $route[0]);
+		}  elseif (
+			//is first part a module name
+			$this->isModule($route[0]) &&
+			//is second part is controller of that module
+			$this->isInControllers($route[1],$route[0]) 
+		) {
+			$this->routeToAction('index', $this->buildParameters($route, 2), $route[1], $route[0]);
+		}elseif ($this->isModule($route[0])) {
+			$this->routeToAction('index', $this->buildParameters($route, 1), $route[0], $route[0]);
 		} else {
 			$this->routeToAction('index', $this->buildParameters($route, 0));
 		}
 	}
 
-	public function routeToAction($action = 'index', $params = [], $controller = null) {
+	public function routeToAction($action = 'index', $params = [], $controller = null, $module=null) {
 		if (!$controller) $controller = J::$options['mainModule'];
-		$action = strtolower($action);
+		if (!$module) $module = J::$options['mainModule'];
+		$action = Helper::camelize($action); 		
 		$controller =  Helper::camelize($controller,true).'Controller';
+		$module = Helper::camelize($module,true);
+		$controllerClass = '\\'.$module.'\\'.$controller;
 		J::purifier()->purifyGetAndPostData();
-		call_user_func_array([new $controller(), $action . 'Action'], $params);
+		call_user_func_array([new $controllerClass(), $action . 'Action'], $params);
 	}
 }

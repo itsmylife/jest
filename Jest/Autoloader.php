@@ -1,6 +1,7 @@
 <?php
 
 namespace J;
+use J;
 
 /**
  * This class autoloads everything from importPaths defined in config
@@ -22,6 +23,8 @@ class Autoloader {
 	
 	public function registerAutoloader() {
 		spl_autoload_register(function($classname) {
+				$classNameParts = explode ('\\',$classname);
+				$classname = $classNameParts[count($classNameParts)-1];
 			foreach ($this->dirs as $dir)	{
 				$file = $dir.'/'.$classname.'.php';
 				if (is_file($file)) {

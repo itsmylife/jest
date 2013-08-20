@@ -1,6 +1,8 @@
 <?php
 
-class JPurifier {
+namespace J;
+
+class Purifier {
 	private static $instance;
 	private $forbiddenArgs;
 	public static function getInstance() {

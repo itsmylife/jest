@@ -1,4 +1,7 @@
 <?php
+
+namespace J;
+
 /**
  * Created by JetBrains PhpStorm.
  * User: cm
@@ -7,7 +10,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-class JException extends Exception {
+class Exception extends \Exception {
 	public function __construct($message, $type=null) {
 		return parent::__construct($message);
 	}

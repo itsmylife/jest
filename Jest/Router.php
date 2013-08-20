@@ -1,9 +1,12 @@
 <?php
+
+namespace J;
+
 /**
  * This class is resolving friendly url's to application actions
  * Class JRouter
  */
-class JRouter
+class Router
 {
 	private static $instance = null;
 	public $uri;
@@ -27,8 +30,8 @@ class JRouter
 	 * @return array given controller's actions
 	 */
 	private function getControllersActions($controllerName) {
-		$controllerName = JHelper::camelize($controllerName,true);
-		$controller = new ReflectionClass($controllerName . 'Controller');
+		$controllerName = Helper::camelize($controllerName,true);
+		$controller = new \ReflectionClass($controllerName . 'Controller');
 		$methods = $controller->getMethods();
 		$actions = [];
 		foreach ($methods as $method) {
@@ -73,17 +76,17 @@ class JRouter
 	}
 	
 	private function isInActions($action, $controller) {
-		$action = JHelper::camelize($action);
+		$action = Helper::camelize($action);
 		return in_array($action, $this->getControllersActions($controller));
 	}
 	
 	private function isInControllers($controller, $module) {
-		$controller =  JHelper::camelize($controller,true);
+		$controller =  Helper::camelize($controller,true);
 		return in_array($controller, $this->getModulesControllers($module));
 	}
 	
 	private function isModule($module) {
-		$module = JHelper::camelize($module,true);
+		$module = Helper::camelize($module,true);
 		return in_array($module, $this->getModules());
 	}
 	
@@ -121,7 +124,7 @@ class JRouter
 	public function routeToAction($action = 'index', $params = [], $controller = null) {
 		if (!$controller) $controller = J::$options['mainModule'];
 		$action = strtolower($action);
-		$controller =  JHelper::camelize($controller,true).'Controller';
+		$controller =  Helper::camelize($controller,true).'Controller';
 		J::purifier()->purifyGetAndPostData();
 		call_user_func_array([new $controller(), $action . 'Action'], $params);
 	}

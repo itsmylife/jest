@@ -1,5 +1,8 @@
 <?php
-class JHelper {
+
+namespace J;
+
+class Helper {
 	public static function camelize($string, $ucFirst=false)	{
 		$string = str_replace('-','_',strtolower($string));		
 		$stringParts = explode('_',$string);

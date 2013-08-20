@@ -1,5 +1,8 @@
 <?php
-require_once(__DIR__.'/JAutoloader.php');
+
+namespace J;
+
+require_once(__DIR__.'/Autoloader.php');
 /**
  * This is the main class of Jest Framework
  * It's full static and it is the brain and start point of all classes
@@ -78,33 +81,33 @@ class J {
 
 	/**
 	 * This returns singleton Router component of J
-	 * @return JRouter
+	 * @return Router
 	 */
 	public static function router() {
-		return JRouter::getInstance();
+		return Router::getInstance();
 	}
 
 	/**
 	 * This returns singleton Autoloader component of J
-	 * @return JAutoloader
+	 * @return Autoloader
 	 */
 	public static function autoloader() {
-		return JAutoloader::getInstance();
+		return Autoloader::getInstance();
 	}
 
 	/**
 	 * This returns singleton App component of J
-	 * @return JApp
+	 * @return App
 	 */
 	public static function app() {
-		return JApp::getInstance();
+		return App::getInstance();
 	}
 
 	/**
 	 * This returns singleton Purifier component of J
-	 * @return JPurifier
+	 * @return Purifier
 	 */
 	public static function purifier() {
-		return JPurifier::getInstance();
+		return Purifier::getInstance();
 	}
 }

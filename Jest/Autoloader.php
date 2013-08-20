@@ -1,10 +1,13 @@
 <?php
+
+namespace J;
+
 /**
  * This class autoloads everything from importPaths defined in config
  * ['importPaths'=>['/modules','/components']] //looks like this
  * Class JAutoloader
  */
-class JAutoloader {
+class Autoloader {
 	private static $instance = null;
 	private $dirs;
 	public function __construct()	{
@@ -52,7 +55,7 @@ class JAutoloader {
 				if ($recursive) $depth = -1;
 				if ($depth != 0) $this->addSubDirs($path, $depth);
 			} else {
-				throw new JException('Cannot find the path for autoloading:'.$path);
+				throw new Exception('Cannot find the path for autoloading:'.$path);
 			}						
 		}
 	}

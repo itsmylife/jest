@@ -17,16 +17,26 @@ class J {
 	
 	/** @var string self::$appDir Initial value of Application Directory*/
 	private static $appDir;
+	
+	//request's routed module:controller:action
+	public static $moduleName;
+	public static $controllerName;
+	public static $actionName;
 
+	//user created module names
+	public static $moduleNames;
+	
 	/**
 	 * This will init some required startup components
 	 * @param string $appDir Application Directory
 	 */
 	public static function init($appDir)
 	{
-		self::$appDir = $appDir;
-		self::configure();		
+		self::$appDir = $appDir;		
+		self::configure();
+		self::$moduleNames = self::getModuleNames();
 		self::autoloader();
+		
 		self::app()->init();
 	}
 
@@ -43,7 +53,8 @@ class J {
 			'importPaths'=>[
 				'{J}/','/Modules/**'
 			],
-			'mainModule'=>'Main'
+			'mainModule'=>'Main',
+			'templateEngine'=>'J\Jade'
 		];
 	}
 	
@@ -68,6 +79,23 @@ class J {
 		}
 	}
 
+	public static function path($pathAlias) {
+		preg_match('%^(.+?)(/.*)%',$pathAlias,$matches);
+		$root = $matches[1];
+		if (in_array($root,self::$moduleNames)) $root = self::getAppDir().'/Modules/'.$root;
+		elseif ($root=='App') $root = self::getAppDir();
+		elseif ($root=='Jest') $root = self::getJestDir();
+		return $root.$matches[2];
+	}
+
+	public static function getModuleNames() {
+		$moduleDir = J::getAppDir().'/modules';
+		$modulePaths = glob($moduleDir.'/*',GLOB_ONLYDIR|GLOB_NOSORT);
+		$modules = [];
+		foreach ($modulePaths as $modulePath) $modules[] = pathinfo($modulePath,PATHINFO_BASENAME);
+		return $modules;
+	}
+	
 	/**
 	 * @return string Jest Directory
 	 */
@@ -112,5 +140,13 @@ class J {
 	 */
 	public static function purifier() {
 		return Purifier::getInstance();
+	}
+
+	/**
+	 * @return J\Jade
+	 */
+	public static function templater() {
+		$templaterClass = self::$options['templateEngine'];
+		return $templaterClass::getInstance();
 	}
 }

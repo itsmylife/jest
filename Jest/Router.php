@@ -28,6 +28,7 @@ class Router
 	/**
 	 * Returns given controller's actions
 	 * @param string $controllerName of which we need action names
+	 * @param string $moduleName
 	 * @return array given controller's actions
 	 */
 	private function getControllersActions($controllerName,$moduleName='Main') {
@@ -57,14 +58,6 @@ class Router
 		}
 		return $params;
 	}
-
-	private function getModules() {
-		$moduleDir = J::getAppDir().'/modules';
-		$modulePaths = glob($moduleDir.'/*',GLOB_ONLYDIR|GLOB_NOSORT);
-		$modules = [];
-		foreach ($modulePaths as $modulePath) $modules[] = pathinfo($modulePath,PATHINFO_BASENAME);
-		return $modules;
-	}
 	
 	private function getModulesControllers($module) {
 		$mainControllersPath = J::getAppDir() . '/Modules/' . $module . '/Controllers';
@@ -91,7 +84,7 @@ class Router
 	
 	private function isModule($module) {
 		$module = Helper::camelize($module,true);
-		return in_array($module, $this->getModules());
+		return in_array($module, J::$moduleNames);
 	}
 	
 	/**
@@ -137,9 +130,10 @@ class Router
 	public function routeToAction($action = 'index', $params = [], $controller = null, $module=null) {
 		if (!$controller) $controller = J::$options['mainModule'];
 		if (!$module) $module = J::$options['mainModule'];
-		$action = Helper::camelize($action); 		
-		$controller =  Helper::camelize($controller,true).'Controller';
-		$module = Helper::camelize($module,true);
+		$action = J::$actionName =  Helper::camelize($action); 		
+		$controller = J::$controllerName = Helper::camelize($controller,true).'Controller';
+		$module = J::$moduleName = Helper::camelize($module,true);
+		
 		$controllerClass = '\\'.$module.'\\'.$controller;
 		J::purifier()->purifyGetAndPostData();
 		call_user_func_array([new $controllerClass(), $action . 'Action'], $params);

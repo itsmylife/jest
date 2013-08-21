@@ -147,6 +147,6 @@ class J {
 	 */
 	public static function templater() {
 		$templaterClass = self::$options['templateEngine'];
-		return $templaterClass::getInstance();
+		return new $templaterClass(J::$moduleName,J::$controllerName,J::$actionName);
 	}
 }

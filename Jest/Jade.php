@@ -65,6 +65,7 @@ class Jade {
 			$parsed .= $docType.PHP_EOL;
 		}
 		$rowData = $this->analyzeRow($row);
+		if (empty($rowData['tag']) && (!empty($rowData['classes']) || !empty($rowData['id']))) $rowData['tag'] = 'div';
 		if (!empty($rowData['parentTag'])) {
 			$parsed .= '<'.$rowData['parentTag'].'>';
 			$indent++;
@@ -84,10 +85,19 @@ class Jade {
 		if (!empty($rowData['tag'])) {
 			$this->htmlTree[$indent][] = $rowData['tag'];
 			$parsed .= "\n".str_repeat("\t",$indent).'<'.$rowData['tag'];
-			foreach ($rowData['params'] as $param=>$value) {
-				$aps = is_numeric($value)?'':'"';
-				$parsed .= ' '.$param.'='.$aps.$value.$aps;
-			}
+			
+			if (!empty($rowData['id'])) $rowData['params']['id'] = $rowData['id'];
+			if (!empty($rowData['classes'])) {
+				foreach ($rowData['classes'] as $class) {
+					$rowData['params']['class'] = trim($rowData['params']['class'].' '.$class);
+				}
+			}			
+			if (!empty($rowData['params'])) {
+				foreach ($rowData['params'] as $param=>$value) {
+					$aps = is_numeric($value)?'':'"';
+					$parsed .= ' '.$param.'='.$aps.$value.$aps;
+				}
+			}			
 			$parsed .= '>';
 		}
 		if (!empty($rowData['content'])) {
@@ -149,8 +159,10 @@ class Jade {
 			foreach ($inlineEscapes as $k=>$iEsc) {
 				$rowData['iEsc'][$k] = ($iEsc[2])?$iEsc[2]:$iEsc[4];
 				$row = str_replace($iEsc[0],'_-_-'.$k.'-_-_',$row);
-			}
+				$objecters = str_replace($iEsc[0],'_-_-'.$k.'-_-_',$objecters);
+			}			
 			$tag = preg_replace('/(\.|#|:).+/','',$objecters);
+			$objecters .= '#';
 			if ($tag=='doctype') $tag = '!doctype';
 			$paramString = isset($match[8])?$match[8]:'';
 			$paramString = str_replace(['\\"',"\\'"],['%%#dq#%%','%%#q#%%'],$paramString);
@@ -159,8 +171,16 @@ class Jade {
 			$this->setParamsToRowData('/([a-z._-]+)="(.+?)"/',$paramString,$params);
 			$paramString = trim($paramString).',';
 			$this->setParamsToRowData('/([a-z._-]+)=(.+?),/',$paramString,$params);
+			
+			//classes
+			preg_match_all('/\.(.+?)[ .#:(]/',$objecters,$classes);
+			//id
+			preg_match('/#(.+?)[ .#:(]/',$objecters,$id);
+			
 			$rowData['tag'] = $tag;
 			$rowData['params'] = $params;
+			$rowData['classes'] =(!empty($classes[1]))?$classes[1]:[];
+			$rowData['id'] = (!empty($id[1]))?$id[1]:'';
 		}		
 		return $rowData;
 	}

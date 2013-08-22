@@ -12,6 +12,8 @@ class Jade {
 	private $viewFile;
 	
 	private $indentType=null;
+	private $htmlTree = [];
+	private $phpTree = [];
 	
 	
 	function __construct($module,$controller,$action) {
@@ -50,16 +52,55 @@ class Jade {
 		$parsed = '';
 		$content = explode(PHP_EOL,$content);
 		$lastIndent = 0;
-		$tree = [];
+		$this->tree = [];
 		foreach ($content as $row) {
-			$indent = $this->getIndent($row);
-			$rowData = $this->analyzeRow($row);
-			if ($docType = $this->checkDocType($row)) {
-				$parsed .= $docType.PHP_EOL;
-				continue;
-			}
+			$this->outPutRow($row,$parsed,$lastIndent);
 		}
 		return $parsed;
+	}
+	
+	public function outPutRow($row,&$parsed,&$lastIndent) {
+		$indent = $this->getIndent($row);
+		if ($docType = $this->checkDocType($row)) {
+			$parsed .= $docType.PHP_EOL;
+		}
+		$rowData = $this->analyzeRow($row);
+		if (!empty($rowData['parentTag'])) {
+			$parsed .= '<'.$rowData['parentTag'].'>';
+			$indent++;
+		}
+		for ($i=$lastIndent;$i>=$indent;$i--) {
+			if (isset($this->htmlTree[$i])) {
+				foreach ($this->htmlTree[$i] as $tag) {
+					if ($i==$indent && preg_match('/<'.$tag.'([^\n]+)>$/si',$parsed)) {
+						$parsed = mb_substr($parsed,0,mb_strlen($parsed)-1).' />';
+					} else {
+						$parsed .= "\n".str_repeat("\t",$i).'</'.$tag.'>';
+					}
+				}
+				unset($this->htmlTree[$i]);
+			}			
+		}
+		if (!empty($rowData['tag'])) {
+			$this->htmlTree[$indent][] = $rowData['tag'];
+			$parsed .= "\n".str_repeat("\t",$indent).'<'.$rowData['tag'];
+			foreach ($rowData['params'] as $param=>$value) {
+				$aps = is_numeric($value)?'':'"';
+				$parsed .= ' '.$param.'='.$aps.$value.$aps;
+			}
+			$parsed .= '>';
+		}
+		if (!empty($rowData['content'])) {
+			if (preg_match('/^|(.+)/',$rowData['content'],$content)) {
+				$parsed .= "\n".str_repeat("\t",$indent+1).$content[1];
+			} elseif (preg_match('/^=(.+)/',$rowData['content'],$content)) {
+				$parsed .="\n".str_repeat("\t",$indent+1).'<?php echo '.$content[1].'; ?>';
+			} elseif (preg_match('/^-(.+)(:)*$/',$rowData['content'],$content)) {
+				$ending = (!empty($content[2]))?'{':';';
+				$parsed .="\n".str_repeat("\t",$indent+1).'<?php '.$content[1].$ending.'?>';
+			}
+		}
+		$lastIndent = $indent;
 	}
 	
 	private function checkDocType($row) {
@@ -94,32 +135,42 @@ class Jade {
 		return 0;
 	}
 	
-	private function analyzeRow($row) {
+	private function analyzeRow(&$row) {
 		$rowData = [];
-		$mainPattern = '/^(((|\.|#|:)((\'|")\|[a-z1-9_$()?:"\'{}=-]+\|(\'|")|[a-z_-]+)+)+)(\((.+)\))*/i';
+		if (preg_match('/^([a-z-_]+?):/',$row,$parentTag)) {
+			$rowData['parentTag'] = $parentTag[1];
+		}		
+		$row = preg_replace('/^[a-z-_]+?:/','',$row);
+		$mainPattern = '/^(((|\.|#)((\'|")\|[a-z1-9_$()?:"\'{}=-]+\|(\'|")|[a-z_-]+)+)+)(\((.+)\))*/i';
 		if (preg_match($mainPattern, $row, $match)) {
-			$objecters = $match[1];
+			$objecters = $match[1]; 
 			//implode php parameters
-			$html = preg_replace('/^(\.|#|:).+','',$objecters);
-			$paramString = $match[2];
+			preg_match_all('/(\'\|(.+?)\|\')|("\|(.+?)\|")/',$row,$inlineEscapes,PREG_SET_ORDER);
+			foreach ($inlineEscapes as $k=>$iEsc) {
+				$rowData['iEsc'][$k] = ($iEsc[2])?$iEsc[2]:$iEsc[4];
+				$row = str_replace($iEsc[0],'_-_-'.$k.'-_-_',$row);
+			}
+			$tag = preg_replace('/(\.|#|:).+/','',$objecters);
+			if ($tag=='doctype') $tag = '!doctype';
+			$paramString = isset($match[8])?$match[8]:'';
 			$paramString = str_replace(['\\"',"\\'"],['%%#dq#%%','%%#q#%%'],$paramString);
 			$params = [];
-			$this->setParamsToRowData('/([a-z._-]+)=\'(.+?)\'/',$paramString);
-			$this->setParamsToRowData('/([a-z._-]+)="(.+?)"/',$paramString);
+			$this->setParamsToRowData('/([a-z._-]+)=\'(.+?)\'/',$paramString,$params);
+			$this->setParamsToRowData('/([a-z._-]+)="(.+?)"/',$paramString,$params);
 			$paramString = trim($paramString).',';
-			$this->setParamsToRowData('/([a-z._-]+)=(.+?),/',$paramString);
-			$rowData['html'] = $html;
+			$this->setParamsToRowData('/([a-z._-]+)=(.+?),/',$paramString,$params);
+			$rowData['tag'] = $tag;
 			$rowData['params'] = $params;
 		}		
 		return $rowData;
 	}
 	
-	private function setParamsToRowData($pattern,&$paramString) {
+	private function setParamsToRowData($pattern,&$paramString, &$params) {
 		if (preg_match_all($pattern, $paramString, $paramMatch, PREG_SET_ORDER)) {
 			$paramString = preg_replace($pattern,'',$paramString);
 			foreach ($paramMatch as $pM) {
 				$pM[2] = str_replace(['%%#dq#%%','%%#q#%%'],['\\"',"\\'"],$pM[2]);
-				$params[] = [$pM[1]=>$pM[2]];
+				$params[$pM[1]] = $pM[2];
 			}
 		}
 	}

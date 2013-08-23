@@ -4,9 +4,15 @@ namespace J;
 use J;
 
 class Controller {
+	
+	public $layout;
+	
+	public function __construct() {
+		$this->layout = J::$options['layout'];
+	}
+	
 	public function render($params=[]) {
-		$controllerName = str_replace('Controller','',J::$controllerName);
-		echo J::templater()->render(J::path(J::$moduleName.'/Views/'.$controllerName),J::$actionName,$params);
+		echo J::templater()->renderWithLayout($params,$this->layout);
 	}
 	
 	public function renderView($params,$view) {

@@ -53,6 +53,7 @@ class J {
 			'importPaths'=>[
 				'{J}/','/Modules/**'
 			],
+			'layout'=>'App/Resources/Layouts/main',
 			'mainModule'=>'Main',
 			'templateEngine'=>'J\Jade'
 		];

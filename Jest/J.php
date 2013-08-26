@@ -4,6 +4,7 @@ use J\App;
 use J\Router;
 use J\Autoloader;
 use J\Purifier;
+use J\Neo;
 
 require_once(__DIR__.'/Autoloader.php');
 /**
@@ -142,6 +143,15 @@ class J {
 	public static function purifier() {
 		return Purifier::getInstance();
 	}
+
+	/**
+	 * This returns singleton Purifier component of J
+	 * @return Neo
+	 */
+	public static function neo() {
+		return Neo::getInstance();
+	}
+
 
 	/**
 	 * @return J\Jade

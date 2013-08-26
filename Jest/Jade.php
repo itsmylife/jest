@@ -3,6 +3,11 @@
 namespace J;
 use J;
 
+/**
+ * This parse a modified jade syntax
+ * Class Jade
+ * @package J
+ */
 class Jade {	
 	private $controller;
 	private $action;
@@ -14,8 +19,13 @@ class Jade {
 	private $indentType=null;
 	private $htmlTree = [];
 	private $phpTree = [];
-	
-	
+
+	/**
+	 * Configurate the paths of cache and view file
+	 * @param $module
+	 * @param $controller
+	 * @param $action
+	 */
 	function __construct($module,$controller,$action) {
 		$this->action = $action;
 		$this->controller = preg_replace('%Controller$%','',$controller);
@@ -26,7 +36,14 @@ class Jade {
 		$this->cacheFile = J::path("$jadeCacheDir/$this->action.php");
 		$this->viewFile = J::path("App/Modules/$this->module/Views/$this->controller/$this->action.jade");
 	}
-	
+
+	/**
+	 * Renders the view file into cache file and include the cache file
+	 * @param $params
+	 * @param null $viewFile
+	 * @param null $cacheFile
+	 * @return string
+	 */
 	public function render($params,$viewFile=null,$cacheFile=null) {
 		extract($params);
 		if ($viewFile==null) $viewFile = $this->viewFile;
@@ -38,7 +55,13 @@ class Jade {
 		require($cacheFile);
 		return ob_get_clean();
 	}
-	
+
+	/**
+	 * Renders the view with layout file, if layout file missing, this uses the global layout file
+	 * @param $params
+	 * @param null $layoutFile
+	 * @return string
+	 */
 	public function renderWithLayout($params,$layoutFile=null) {
 		if ($layoutFile==null) $layoutFile = J::$options['layout'];
 		$viewFile = J::path($layoutFile).'.jade';
@@ -50,19 +73,32 @@ class Jade {
 		$rendered = $this->render($params,$viewFile,$cacheFile);
 		return $rendered;
 	}
-	
+
+	/**
+	 * Looks that is view file modified after its cached
+	 * @return bool
+	 */
 	private function isUpdated() {
-		/*if (is_file($this->cacheFile)) {
+		if (is_file($this->cacheFile)) {
 			return filemtime($this->cacheFile)<filemtime($this->viewFile);
-		}*/
+		}
 		return true;
 	}
-	
+
+	/**
+	 * Parses the content into cache file
+	 * @param $viewFile
+	 * @param $cacheFile
+	 */
 	private function parseToCache($viewFile,$cacheFile) {
 		$content = $this->parse(file_get_contents($viewFile));		
 		file_put_contents($cacheFile,$content);
 	}
-	
+
+	/**
+	 * @param $content
+	 * @return string Parsed Content
+	 */
 	private function parse($content) {
 		$parsed = '';
 		$content = explode(PHP_EOL,$content);
@@ -76,7 +112,15 @@ class Jade {
 		}
 		return $parsed;
 	}
-	
+
+	/**
+	 * This method process rows one by one and write parsed data to $parsed
+	 * @param $row
+	 * @param $parsed
+	 * @param $lastIndent
+	 * @param $blockedIndent
+	 * @param $multilineString
+	 */
 	public function outPutRow($row,&$parsed,&$lastIndent,&$blockedIndent,&$multilineString) {
 		$indent = $this->getIndent($row);
 		if ($blockedIndent>=0) {
@@ -192,7 +236,12 @@ class Jade {
 		}
 		$lastIndent = $indent;
 	}
-	
+
+	/**
+	 * returns docType from view
+	 * @param $row
+	 * @return bool|string
+	 */
 	private function checkDocType($row) {
 		$row = preg_replace('/^doctype/','!!!',$row);
 		if ($row=='!!!') return '<!DOCTYPE html>';
@@ -211,7 +260,12 @@ class Jade {
 		} 
 		return false;		
 	}
-	
+
+	/**
+	 * Return the indent level of row
+	 * @param $row
+	 * @return int
+	 */
 	private function getIndent(&$row) {
 		if ($this->indentType===null && preg_match('/^( +|\t)/',$row,$match)) {
 			$this->indentType = $match[1];
@@ -225,7 +279,12 @@ class Jade {
 		}
 		return 0;
 	}
-	
+
+	/**
+	 * Analyzes the row for almost everything and collect analyzed data into $rowData
+	 * @param $row
+	 * @return array
+	 */
 	private function analyzeRow(&$row) {
 		$rowData = [];
 		if (!preg_match('/:$/',$row)){
@@ -306,7 +365,13 @@ class Jade {
 		if (!empty($rowData['tag']) && $rowData['tag'] == 'doctype') $rowData['tag']='!DOCTYPE';
 		return $rowData;
 	}
-	
+
+	/**
+	 * Set row html attributes to $rowData
+	 * @param $pattern
+	 * @param $paramString
+	 * @param $params
+	 */
 	private function setParamsToRowData($pattern,&$paramString, &$params) {
 		if (preg_match_all($pattern, $paramString, $paramMatch, PREG_SET_ORDER)) {
 			$paramString = preg_replace($pattern,'',$paramString);

@@ -88,7 +88,7 @@ class Jade {
 			}
 		}
 		if ($multilineString>=0) {
-			if ($indent==$multilineString) {
+			if ($indent<=$multilineString) {
 				$multilineString = -1;
 			} else {
 				$row = '| '.$row;

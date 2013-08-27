@@ -13,6 +13,7 @@ class Neo {
 		$this->host = J::$options['neo']['host'];
 		$this->port = J::$options['neo']['port'];
 		$this->endPoint = J::$options['neo']['endPoint'];
+		$this->address = $this->host.':'.$this->port;
 	}
 
 	public static function getInstance() {
@@ -23,7 +24,8 @@ class Neo {
 	public function sendRequest($procedure,$type='POST',$data=[]) {
 		$data_string = json_encode($data,JSON_FORCE_OBJECT);
 
-		$ch = curl_init($this->host.':'.$this->port.'/'.$procedure);
+		$ch = curl_init($this->address.'/'.$procedure);
+		curl_setopt($ch, CURLOPT_HEADER, 1);
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $type);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -33,21 +35,33 @@ class Neo {
 				'X-Stream: true'
 			)				
 		);
-
-		return json_decode(curl_exec($ch));
+		$result = json_decode(explode(PHP_EOL.PHP_EOL,curl_exec($ch))[1]);
+		$returnType = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		if (isset($result->exception)) {
+			throw new Exception($returnType.'-'.$result->exception.':'.$result->message);
+		} else {
+			return $result;
+		}
 	}		
 	
-	public function create($query, $params) {
-		return $this->sendRequest('db/data/node/0','GET');
+	public function cypher($query,$params=[]) {
+		$data = ['query'=>$query,'params'=>$params];
+		return $this->sendRequest('db/data/cypher?includeStats=true','POST',$data);
 	}
 	
 	public function arrayToNeoString($array) {
-		$str = '';
+		$str = [];
 		foreach ($array as $q=>$v) {
 			if (!is_numeric($v)) $v = '"'.$v.'"';
-			$str .= $q.':'.$v;
+			$str[] = $q.':'.$v;
 		}
-		return $str;
+		return join(',',$str);
+	}
+	
+	public function clearGraph() {
+		$q = "START n=node(*) MATCH n-[r?]->() WHERE {endPoint} in labels(n) AND id(n)<>0 DELETE n,r";
+		$params['endPoint'] = $this->endPoint;
+		return $this->cypher($q,$params);
 	}
 	
 	public function select($query, $params=[]) {

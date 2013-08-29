@@ -49,12 +49,11 @@ class NeoNode {
 		if ($to != null) $params->to = $to;
 		if ($type != null) $params->type = $type;
 		if ($data != null) $params->data = $data;
-		J::neo()->sendRequest('db/data/node/'.$this->id.'/relationships/all','GET');
-		
+		J::neo()->sendRequest('db/data/node/'.$this->id.'/relationships/all','GET');	
 	}
-
-	public function getRelatedWith() {
-		
+	
+	public static function getIdFromResult($neoNode) {
+		return array_reverse(explode('/',$neoNode->self))[0];
 	}
 	
 	public function relateWith($to=null,$type=null,$data=[]) {

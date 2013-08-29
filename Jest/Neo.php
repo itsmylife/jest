@@ -64,11 +64,6 @@ class Neo {
 		return $this->cypher($q,$params);
 	}
 	
-	public function select($query, $params=[]) {
-		$data = ['query'=>$query,'params'=>$params];
-		return $this->sendRequest('db/data/cypher?includeStats=true','POST',$data);
-	}
-	
 	public function startTransaction() {
 		$this->transaction = new NeoTransaction($statements);
 	}

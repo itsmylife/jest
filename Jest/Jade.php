@@ -48,7 +48,7 @@ class Jade {
 		extract($params);
 		if ($viewFile==null) $viewFile = $this->viewFile;
 		if ($cacheFile==null) $cacheFile = $this->cacheFile;
-		if ($this->isUpdated()) {
+		if ($this->isUpdated($viewFile,$cacheFile)) {
 			$this->parseToCache($viewFile,$cacheFile);
 		}
 		ob_start();
@@ -73,14 +73,17 @@ class Jade {
 		$rendered = $this->render($params,$viewFile,$cacheFile);
 		return $rendered;
 	}
-
 	/**
 	 * Looks that is view file modified after its cached
+	 * @param $viewFile
+	 * @param $cacheFile
 	 * @return bool
 	 */
-	private function isUpdated() {
+	private function isUpdated($viewFile,$cacheFile) {
 		if (is_file($this->cacheFile)) {
-			return filemtime($this->cacheFile)<filemtime($this->viewFile);
+			$cacheMTime = filemtime($cacheFile);
+			$fileMTime = filemtime($viewFile);
+			return ($cacheMTime<$fileMTime);
 		}
 		return true;
 	}

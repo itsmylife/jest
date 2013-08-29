@@ -29,13 +29,12 @@ class Person extends J\NeoModel {
 		$this->relateWith($person,'Loves');
 	}
 	
-	public function getLoves($criteria) {
-		$q = $this->query()
-			->addMatch('$n-[:Loves]->($m)')
+	public function getLoves() {
+		$loves = $this->query()
+			->addMatch('$this-[:Loves]->($m:Person)')
 			->addReturn('m')
-			->build()
-		;
-		return $q;
+			->findAll();
+		return $loves;
 	}
 	
 }

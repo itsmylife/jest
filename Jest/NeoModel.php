@@ -20,9 +20,16 @@ class NeoModel extends NeoNode{
 		return new static($id);
 	}
 	
-	public function query($identifier='n') {
+	public function query($identifier='this') {
 		$q = new NeoQuery();
 		$q->addStart($identifier.'=node('.$this->id.')');
+		foreach ($this->labels as $label) {
+			$q->addWhere('\''.$label.'\' in labels(this)');
+		}		
 		return $q;
+	}
+	
+	public function addFields($fields) {
+		$this->fields = array_merge($this->fields,$fields);
 	}
 }

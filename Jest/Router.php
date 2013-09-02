@@ -104,6 +104,15 @@ class Router
 			$this->isInActions($route[1],$route[0],J::$options['mainModule'])
 		) {
 			$this->routeToAction($route[1], $this->buildParameters($route, 2), $route[0]);
+		} elseif(
+			//is first part a module name
+			$this->isModule($route[0]) &&
+			//is have moduleController
+			$this->isInControllers($route[0],$route[0]) &&
+			//is second part is action of modules main controller
+			$this->isInActions($route[1],$route[0],$route[0])
+		){
+			$this->routeToAction($route[1],$this->buildParameters($route,2),$route[0],$route[0]);
 		} elseif (
 			//is first part a module name
 			$this->isModule($route[0]) &&

@@ -23,11 +23,17 @@ class Autoloader {
 	
 	public function registerAutoloader() {
 		spl_autoload_register(function($classname) {
-				$classNameParts = explode ('\\',$classname);
-				$classname = $classNameParts[count($classNameParts)-1];
+			$classNameParts = explode ('\\',$classname);
+			$classname = array_pop($classNameParts);
+			$namespace = join('\\',$classNameParts);
 			foreach ($this->dirs as $dir)	{
 				$file = $dir.'/'.$classname.'.php';
-				if (is_file($file)) {
+				if (
+					is_file($file) && (
+						$namespace == 'J' ||
+						preg_match('~'.$namespace.'~i',$dir)
+					)					
+				) {
 					include_once($file); break;
 				}
 			}				

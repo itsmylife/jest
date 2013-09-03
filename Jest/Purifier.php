@@ -23,10 +23,16 @@ class Purifier {
 	 * @return mixed
 	 */
 	public function purify($parameter) {
-		$parameter = urldecode($parameter);
-		$parameter = preg_replace('%(\n\r|\r|\n)%','',$parameter);
-		$parameter = preg_replace('%< *script.*?(/>|</ *script.*?>)%si', '', $parameter);
-		$parameter = preg_replace('/('.$this->forbiddenArgs.') *=( *(\'|").*?(\'|")|.+? +)/si', '', $parameter);
+		if (is_array($parameter)) {
+			foreach($parameter as $q=>$p) {
+				$parameter[$q] = $this->purify($p);
+			}
+		} else {
+			$parameter = urldecode($parameter);
+			$parameter = preg_replace('%(\n\r|\r|\n)%','',$parameter);
+			$parameter = preg_replace('%< *script.*?(/>|</ *script.*?>)%si', '', $parameter);
+			$parameter = preg_replace('/('.$this->forbiddenArgs.') *=( *(\'|").*?(\'|")|.+? +)/si', '', $parameter);
+		}		
 		return $parameter;
 	}
 	

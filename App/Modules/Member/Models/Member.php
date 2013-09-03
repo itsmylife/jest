@@ -10,6 +10,7 @@ class Member extends J\NeoModel {
 	public $password;
 	public $repeatPassword;
 	public $salt;
+	public $sendButton;
 	
 	public $fields = [
 		'username'=>[
@@ -41,12 +42,20 @@ class Member extends J\NeoModel {
 			'mapped' => false,
 			'constraints'=>[
 				['type'=>'required', 'on'=>'signUp'],
-				['type'=>'same', 'with'=>'password', 'on'=>'signUp']
+				['type'=>'same', 'with'=>'password', 'message'=>'Şifre ile aynı olmalıdır', 'on'=>'signUp']
 			]
 		],
 		'salt'=>[
 			'constraints' => [
 				['type'=>'notSafe', 'on'=>'signUp']
+			]
+		],
+		'sendButton'=>[
+			'value'=>'Gönder',
+			'type'=>'submitButton',
+			'mapped'=>false,
+			'constraints' => [
+				['type'=>'safe', 'on'=>'signUp']
 			]
 		]
 	];

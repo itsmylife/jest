@@ -46,6 +46,12 @@ class Jade {
 	 */
 	public function render($params,$viewFile=null,$cacheFile=null) {
 		extract($params);
+		if ($viewFile && $cacheFile==null) {
+			$cacheFile = str_replace(J::getAppDir(),J::path('App/Cache/Jade/App'),$viewFile);
+			$cacheFile = str_replace('.jade','.php',$cacheFile);
+			$cacheDir = pathinfo($cacheFile,PATHINFO_DIRNAME);
+			if (!is_dir($cacheDir)) mkdir($cacheDir,0777,true);
+		}
 		if ($viewFile==null) $viewFile = $this->viewFile;
 		if ($cacheFile==null) $cacheFile = $this->cacheFile;
 		if ($this->isUpdated($viewFile,$cacheFile)) {
@@ -80,7 +86,7 @@ class Jade {
 	 * @return bool
 	 */
 	private function isUpdated($viewFile,$cacheFile) {
-		if (is_file($this->cacheFile)) {
+		if (file_exists($cacheFile)) {
 			$cacheMTime = filemtime($cacheFile);
 			$fileMTime = filemtime($viewFile);
 			return ($cacheMTime<$fileMTime);
@@ -156,7 +162,7 @@ class Jade {
 		for ($i=$lastIndent;$i>=$indent;$i--) {
 			if (isset($this->htmlTree[$i])) {
 				foreach ($this->htmlTree[$i] as $tag) {
-					if ($i==$lastIndent && $tag != '!--[if' && preg_match('/<'.$tag.'([^\n]+)>$/si',$parsed)) {
+					if ($i==$lastIndent && $tag != '!--[if' && preg_match('/<'.$tag.'([^\n]*)>$/si',$parsed)) {
 						if ($tag!='!DOCTYPE') $parsed = mb_substr($parsed,0,mb_strlen($parsed)-1).' />';
 					} else {
 						if ($tag == '!--') $parsed .= "\n".str_repeat("\t",$i).'-->';
@@ -345,10 +351,10 @@ class Jade {
 				$paramString = isset($match[8])?$match[8]:'';
 				$paramString = str_replace(['\\"',"\\'"],['%%#dq#%%','%%#q#%%'],$paramString);
 				$params = [];
-				$this->setParamsToRowData('/([a-z._-]+)(=\'(.+?)\')*/',$paramString,$params);
-				$this->setParamsToRowData('/([a-z._-]+)(="(.+?)")*/',$paramString,$params);
+				$this->setParamsToRowData('/([a-z._-]+)(=\'(.*?)\')*/',$paramString,$params);
+				$this->setParamsToRowData('/([a-z._-]+)(="(.*?)")*/',$paramString,$params);
 				$paramString = trim($paramString).',';
-				$this->setParamsToRowData('/([a-z._-]+)(=(.+?))*,/',$paramString,$params);
+				$this->setParamsToRowData('/([a-z._-]+)(=(.*?))*,/',$paramString,$params);
 
 				//classes
 				preg_match_all('/\.(.+?)[ .#:(]/',$objecters,$classes);
@@ -379,7 +385,8 @@ class Jade {
 		if (preg_match_all($pattern, $paramString, $paramMatch, PREG_SET_ORDER)) {
 			$paramString = preg_replace($pattern,'',$paramString);
 			foreach ($paramMatch as $pM) {
-				if (empty($pM[3])) $pM[3] = $pM[1];
+				if (!isset($pM[3]) && !preg_match('/=/',$paramString)) $pM[3] = $pM[1];
+				if (!isset($pM[3])) $pM[3] = '';
 				$pM[3] = str_replace(['%%#dq#%%','%%#q#%%'],['\\"',"\\'"],$pM[3]);
 				$params[$pM[1]] = $pM[3];
 			}

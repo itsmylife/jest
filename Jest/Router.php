@@ -16,6 +16,7 @@ class Router
 
 	function __construct() {
 		$this->uri = preg_replace('/^\//', '', $_SERVER['REQUEST_URI']);
+		$this->uri = explode('?',$this->uri)[0];
 		$this->host = $_SERVER['SERVER_NAME'];
 		$this->mainControllerName = J::$options['mainModule'] . 'Controller';
 	}

@@ -5,6 +5,7 @@ use J\Router;
 use J\Autoloader;
 use J\Purifier;
 use J\Neo;
+use J\Constraint;
 
 require_once(__DIR__.'/Autoloader.php');
 /**
@@ -152,7 +153,14 @@ class J {
 		return Neo::getInstance();
 	}
 
-
+	/**
+	 * This returns singleton Constraint component of J
+	 * @return Constraint
+	 */
+	public static function constraint() {
+		return Constraint::getInstance();
+	}
+	
 	/**
 	 * @return J\Jade
 	 */

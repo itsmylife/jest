@@ -16,8 +16,10 @@ class MemberController extends Controller {
 		$member = new Member();
 		$signUpForm = new SignUpForm($member);
 		if ($signUpForm->isValid()) {
+			echo "Girdim";
 		}
-		$resp['form'] = $signUpForm->render();
+		$signUpForm->rowTemplate = J::path('Member/Views/Forms/row.jade');
+		$resp['form'] = $signUpForm;
 		$this->render($resp);
 	}
 }

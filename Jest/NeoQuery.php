@@ -16,6 +16,15 @@ class NeoQuery {
 	public $where = [];
 	public $return = [];
 	public $limit = [];
+	public $returnModel;
+	
+	public function __construct($returnModel=null) {
+		$this->returnModel = $returnModel;
+	}
+	
+	public function init($labels=[]) {
+		
+	}
 	
 	public function addStart($start) {
 		$this->start[] = $start;
@@ -51,6 +60,7 @@ class NeoQuery {
 	
 	public function setLimit($limit,$offset=0) {
 		$this->limit = [$limit, $offset];
+		return $this;
 	}
 	
 	public function build() {
@@ -89,17 +99,22 @@ class NeoQuery {
 	
 	public function findAll($limit=0,$offset=0) {
 		$q = $this->build();
-		return J::neo()->cypher($q);
+		$result = J::neo()->cypher($q);
+		if (isset($result->data)) return $result->data;
+		else $result;
 	}
 	
-	public function findAllAs($model, $limit=0, $offset=0) {
+	public function findAllAs($model=null, $limit=0, $offset=0) {
 		$result = $this->findAll($limit, $offset);
+		if (!$model) $model = $this->returnModel;
+		if (!$model) throw new Exception('There is no defined return model');
 		$nodes = [];
-		foreach ($result->data as $data) {
+		foreach ($result[0] as $data) {
 			/** @var NeoNode $neoNode */
-			$neoNode = new $model(NeoNode::getIdFromResult($data[0]));
-			foreach ($data[0]->data as $param=>$value) {
-				$neoNode->params[$param] = $value;
+			$neoNode = new $model(NeoNode::getIdFromResult($data));
+			foreach ($data->data as $param=>$value) {
+				if (property_exists($neoNode,$param)) $neoNode->{$param} = $value;
+				else $neoNode->params[$param] = $value;
 			}	
 			$nodes[] = $neoNode;
 		}

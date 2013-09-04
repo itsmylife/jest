@@ -24,8 +24,19 @@ class NeoModel extends NeoNode{
 		$q = new NeoQuery();
 		$q->addStart($identifier.'=node('.$this->id.')');
 		foreach ($this->labels as $label) {
-			$q->addWhere('\''.$label.'\' in labels(this)');
-		}		
+			$q->addWhere('\''.$label.'\' in labels('.$identifier.')');
+		}
+		$q->addWhere('\''.J::neo()->endPoint.'\' in labels('.$identifier.')');
+		return $q;
+	}
+	
+	public static function initQuery($identifier='this') {
+		$model = new static();
+		$q = new NeoQuery($model);
+		foreach ($model->labels as $label) {
+			$q->addWhere('\''.$label.'\' in labels('.$identifier.')');
+		}
+		$q->addWhere('\''.J::neo()->endPoint.'\' in labels('.$identifier.')');
 		return $q;
 	}
 	

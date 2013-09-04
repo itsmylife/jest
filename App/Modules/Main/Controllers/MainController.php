@@ -10,14 +10,14 @@ class MainController extends Controller {
 	public function indexAction($isim) {
 		//$node = NeoNode::getWithId(300);
 		//$result1=$node->name;
-		J::neo()->clearGraph();
+		//J::neo()->clearGraph();
 		/*$node = NeoNode::create('Person',[
 				'name'=>'Onur Eren', 'surname'=>'Elibol'
 			]);*/
 		
 		//$result2 = J::neo()->select('match n return n');
 		
-		$onur = new Member();
+		/*$onur = new Member();
 		$onur->isim = 'Onur Eren';
 		$onur->soyad = 'Elibol';
 		$onur->username = 'codemaster';
@@ -31,12 +31,23 @@ class MainController extends Controller {
 		$seyma->soyad = 'Peker';
 		$seyma->save();
 
-		$onur->loves($seyma);
+		$onur->loves($seyma);*/
 		
-		//$onur = Person::findById(616);
-		$result = $onur->getLoves();
+		/*$result = Person::initQuery()
+			->addMatch('this')
+			->addReturn('this')
+			->addWhere('this.isim="Onur Eren"')
+			->addWhere('this.soyad="Elibol"') //this.isim="Onur Eren" and this.soyad="Elibol"
+			->findAllAs();
+		$onur = $result[0];
+		$result = $onur->getLoves();*/
 		
-		$this->render(['result'=>[$result]]);
+		$seyma = NeoNode::getWithId(30);
+		$result = $seyma->isim;
+		
+		$this->render([
+			'result'=>[$result],
+		]);
 	}
 	public function merhabaDeAction($isim1,$isim2) {
 		echo 'Merhaba'. $isim1.' '.$isim2;

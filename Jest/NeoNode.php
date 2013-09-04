@@ -18,12 +18,15 @@ class NeoNode {
 	}
 	
 	function __get($param) {
-		if (isset($this->params[$param])) {
-			return $this->params[$param];
-		} else {
+		if (!isset($this->params[$param])) {
 			$nodeData = J::neo()->sendRequest('db/data/node/'.$this->id,'GET');
-			return $this->params[$param] = $nodeData->data->{$param};
+			foreach($nodeData->data as $paramTemp=>$value) $this->params[$paramTemp] = $value;
 		}
+		return $this->params[$param];
+	}
+	
+	public function clearPool() {
+		$this->params = [];
 	}
 	
 	public function delete() {

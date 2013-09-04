@@ -33,7 +33,7 @@ class Person extends J\NeoModel {
 		$loves = $this->query()
 			->addMatch('$this-[:Loves]->($m:Person)')
 			->addReturn('m')
-			->findAll();
+			->findAllAs('Main\Person');
 		return $loves;
 	}
 	

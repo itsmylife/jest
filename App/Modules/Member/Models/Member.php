@@ -26,7 +26,8 @@ class Member extends J\NeoModel {
 			'type' => 'textField',
 			'constraints'=>[
 				['type'=>'required', 'on'=>'signUp'],
-				['type'=>'unique', 'on'=>'signUp']
+				['type'=>'unique', 'on'=>'signUp'],
+				['type'=>'email', 'on'=>'signUp']
 			]
 		],
 		'password' => [

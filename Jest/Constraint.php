@@ -26,18 +26,41 @@ class Constraint {
 	}
 	
 	public function checkUnique($field,$constraint,$data,$model) {
+		if ($this->checkEmpty($constraint,$field->value)) return true;
 		/** @var Member $className */
 		$className = get_class($model);
-		return true;
+		$result = $className::initQuery()
+			->addMatch('this')
+			->addWhere('this.'.$field->name.'={fieldValue}')
+			->addParameters(['fieldValue'=>$field->value])
+			->count();
+		return ($result<1);
+	}
+	
+	public function checkEmail($field,$constraint,$data,$model) {
+		if ($this->checkEmpty($constraint,$field->value)) return true;
+		return preg_match('/^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,4}$/i', $field->value);
 	}
 	
 	public function checkSame($field,$constraint,$data,$model) {
+		if ($this->checkEmpty($constraint,$field->value)) return true;
 		$value = $field->value;
 		$sameValue = $data[$constraint['with']];
 		return ((string)$value == (string)$sameValue);
 	}
 	
 	public function checkSafe($field,$constraint,$data,$model) {
+		if ($this->checkEmpty($constraint,$field->value)) return true;
 		return true;
+	}
+	
+	public function allowEmpty($constraint) {
+		if (isset($constraint['allowEmpty']) && !$constraint['allowEmpty']) return false;
+		else return true;
+	}
+	
+	public function checkEmpty($constraint,$value) {
+		if (empty($value) && $this->allowEmpty($constraint)) return true;
+		return false;
 	}
 }

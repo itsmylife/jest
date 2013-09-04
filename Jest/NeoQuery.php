@@ -16,6 +16,7 @@ class NeoQuery {
 	public $where = [];
 	public $return = [];
 	public $limit = [];
+	public $params = [];
 	public $returnModel;
 	
 	public function __construct($returnModel=null) {
@@ -40,6 +41,11 @@ class NeoQuery {
 		$match = preg_replace('/\$([a-z_]+)/i','$1:'.J::neo()->endPoint,$match);
 		$match = preg_replace('/\{\$([a-z_]+?)\}/i','$1:'.J::neo()->endPoint,$match);
 		$this->match[] = $match;
+		return $this;
+	}
+	
+	public function addParameters($paramArray) {
+		$this->params = array_merge($this->params,$paramArray);
 		return $this;
 	}
 	
@@ -97,27 +103,40 @@ class NeoQuery {
 		return $q;
 	}
 	
-	public function findAll($limit=0,$offset=0) {
+	public function getResult($limit=0,$offset=0) {
+		$this->setLimit($limit,$offset);
 		$q = $this->build();
-		$result = J::neo()->cypher($q);
-		if (isset($result->data)) return $result->data;
-		else $result;
+		$result = J::neo()->cypher($q,$this->params);
+		return (isset($result->data))? $result->data : $result;
 	}
 	
-	public function findAllAs($model=null, $limit=0, $offset=0) {
-		$result = $this->findAll($limit, $offset);
+	public function findAll($model=null, $limit=0, $offset=0) {
+		$result = $this->getResult($limit, $offset);
 		if (!$model) $model = $this->returnModel;
 		if (!$model) throw new Exception('There is no defined return model');
 		$nodes = [];
-		foreach ($result[0] as $data) {
-			/** @var NeoNode $neoNode */
-			$neoNode = new $model(NeoNode::getIdFromResult($data));
-			foreach ($data->data as $param=>$value) {
-				if (property_exists($neoNode,$param)) $neoNode->{$param} = $value;
-				else $neoNode->params[$param] = $value;
-			}	
-			$nodes[] = $neoNode;
-		}
+		if (isset($result[0])) {
+			foreach ($result[0] as $data) {
+				/** @var NeoNode $neoNode */
+				$neoNode = new $model(NeoNode::getIdFromResult($data));
+				foreach ($data->data as $param=>$value) {
+					if (property_exists($neoNode,$param)) $neoNode->{$param} = $value;
+					else $neoNode->params[$param] = $value;
+				}
+				$nodes[] = $neoNode;
+			}
+		}		
 		return $nodes;
+	}
+	
+	public function count() {
+		$this->addReturn('count(*)');
+		$result = $this->getResult(1);
+		return (isset($result[0][0]))?  $result[0][0] : 0;
+	}
+	
+	public function find($model=null) {
+		$result = $this->findAll($model,1);
+		return ($result[0])? $result[0]:null;
 	}
 }

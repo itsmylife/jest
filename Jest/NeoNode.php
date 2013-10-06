@@ -20,6 +20,7 @@ class NeoNode {
 	function __get($param) {
 		if (!isset($this->params[$param])) {
 			$nodeData = J::neo()->sendRequest('db/data/node/'.$this->id,'GET');
+			if ($nodeData===null) throw new NeoException('Property cannot be found: '.$param);
 			foreach($nodeData->data as $paramTemp=>$value) $this->params[$paramTemp] = $value;
 		}
 		return $this->params[$param];
@@ -41,10 +42,21 @@ class NeoNode {
 	public function create($labels=[],$properties=[]) {
 		if (is_string($labels)) $labels = [$labels];
 		$labels[] = J::neo()->endPoint;
-		$properties = J::neo()->arrayToNeoString($properties);
-		$q = "create (n:".join(':',$labels)." { ".$properties." }) return id(n)";
-		$result = J::neo()->cypher($q);
+		$params = [
+			'props'=>$properties
+		];
+		$q = "create (n:".join(':',$labels)." { props }) return id(n)";
+		$result = J::neo()->cypher($q,$params);
 		$this->id = $result->data[0][0];
+	}
+	
+	public function update($properties=[]) {
+		$params = [
+			'props'=>$properties	
+		];
+		$q = "START n=node(".$this->id.") SET n={ props }";
+		$result = J::neo()->cypher($q,$params);
+		return $result->stats->properties_set;
 	}
 	
 	public function getRelations($to=null,$type=null,$data=null) {

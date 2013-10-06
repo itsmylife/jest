@@ -35,10 +35,14 @@ class Neo {
 				'X-Stream: true'
 			)				
 		);
-		$result = json_decode(explode(PHP_EOL.PHP_EOL,curl_exec($ch))[1]);
+		$resultParts = explode(PHP_EOL.PHP_EOL,curl_exec($ch));
+		
+		if (!empty($resultParts[1])) $result = json_decode($resultParts[1]);
+		else $result=null;
+		
 		$returnType = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		if (isset($result->exception)) {
-			throw new Exception($returnType.'-'.$result->exception.':'.$result->message);
+			throw new NeoException($returnType.'-'.$result->exception.':'.$result->message);
 		} else {
 			return $result;
 		}

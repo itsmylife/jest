@@ -13,7 +13,8 @@ class NeoModel extends NeoNode{
 		foreach ($this->fields as $field=>$options) {
 			if (isset($this->$field)) $properties[$field] = $this->$field;
 		}
-		$this->create($this->labels,$properties);
+		if (!empty($this->id)) $this->update($properties);
+		else $this->create($this->labels,$properties);
 	}
 	
 	public static function findById($id) {

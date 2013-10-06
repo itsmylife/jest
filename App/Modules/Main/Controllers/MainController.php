@@ -26,10 +26,7 @@ class MainController extends Controller {
 		$onur->repeatPassword = '123456';
 		$onur->save();
 		
-		$seyma = new Person();
-		$seyma->isim = 'Şeyma';
-		$seyma->soyad = 'Peker';
-		$seyma->save();
+		
 
 		$onur->loves($seyma);*/
 		
@@ -41,12 +38,46 @@ class MainController extends Controller {
 			->findAllAs();
 		$onur = $result[0];
 		$result = $onur->getLoves();*/
+
+		J::neo()->clearGraph();
+
+		$onur = new Member();
+		$onur->isim = 'Onur Eren';
+		$onur->soyad = 'Elibol';
+		$onur->username = 'codemaster';
+		$onur->email = 'onurelibol@gmail.com';
+		$onur->password = '123456';
+		$onur->repeatPassword = '123456';
+		$onur->save();
 		
-		$seyma = NeoNode::getWithId(30);
-		$result = $seyma->isim;
+		$seyma = new Person();
+		$seyma->isim = 'Şeyma';
+		$seyma->soyad = 'Peker';
+		$seyma->save();
+		
+		$seyma->loves($onur);
+		
+		$result = $seyma->getLoves();
+		
+		/** @var Person $person *//*
+		$person = Person::initQuery()
+			->addMatch('this')
+			->addReturn('this')
+			->find();
+		
+		$person->soyad = 'Elibol';
+		$person->save();
+		
+		$people = Person::initQuery()
+			->addMatch('this')
+			->addReturn('this')
+			->findAll();*/
+		
+		/*$seyma = NeoNode::getWithId(30);
+		$result = $seyma->isim;*/
 		
 		$this->render([
-			'result'=>[$result],
+			'result'=>$result,
 		]);
 	}
 	public function merhabaDeAction($isim1,$isim2) {

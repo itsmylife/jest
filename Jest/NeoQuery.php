@@ -97,8 +97,8 @@ class NeoQuery {
 		}
 		if (!empty($this->return)) $q .= 'return '. join(',',$this->return). ' ';
 		if (!empty($this->limit)) {
-			if (isset($this->limit[1])) $q .= 'skip '.$this->limit[1]. ' ';
-			$q .='limit '.$this->limit[0].' ';
+			if (!empty($this->limit[1])) $q .= 'skip '.$this->limit[1]. ' ';
+			if (!empty($this->limit[0])) $q .='limit '.$this->limit[0].' ';
 		}
 		return $q;
 	}
@@ -134,9 +134,9 @@ class NeoQuery {
 		$result = $this->getResult(1);
 		return (isset($result[0][0]))?  $result[0][0] : 0;
 	}
-	
+
 	public function find($model=null) {
 		$result = $this->findAll($model,1);
-		return ($result[0])? $result[0]:null;
+		return (!empty($result[0]))? $result[0]:null;
 	}
 }

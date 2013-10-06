@@ -31,10 +31,19 @@ class Person extends J\NeoModel {
 	
 	public function getLoves() {
 		$loves = $this->query()
-			->addMatch('$this-[:Loves]->($m:Person)')
+			->addMatch('this-[:Loves]->($m:Person)')
 			->addReturn('m')
-			->findAllAs('Main\Person');
+			->findAll('Main\Person');
 		return $loves;
+	}
+	
+	public function getSeymaNamedNode() {
+		$seyma = $this->query()
+			->addWhere('this.isim={ isimParam }')
+			->addParameters(['isimParam'=>'Şeyma'])
+			->addReturn('this')
+			->find('Main\Person');
+		return $seyma;
 	}
 	
 }
